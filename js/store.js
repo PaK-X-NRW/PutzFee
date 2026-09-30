@@ -167,6 +167,7 @@
     for (const name of ALLE_STORES) daten[name] = await DB.getAll(name);
     return {
       app: "putzfee",
+      appVersion: global.APP_VERSION,
       schemaVersion: SCHEMA_VERSION,
       exportiertAm: new Date().toISOString(),
       daten: daten

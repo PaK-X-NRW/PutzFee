@@ -114,6 +114,24 @@ Es gibt zwei Ansichten:
   (Raum antippen, abhaken, Zeit vorspulen) und auf Fehler in der Konsole
   achten.
 - **Commit-Messages** auf Deutsch, kurz.
-- Sobald es einen Service Worker gibt, gilt dieselbe Cache- und
-  Versionsregel wie in Noten-Fritze: Die Versionsnummer wird nur auf Ansage
-  erhöht.
+
+## 6. Service Worker: die Cache-Falle
+
+Der Service Worker `service-worker.js` hält die App-Shell **cache-first** unter
+dem Namen `putzfee-<APP_VERSION>` vor (`js/version.js`, eingebunden per
+`importScripts`).
+
+- **Änderungen an gecachten Dateien** (`index.html`, `css/`, `js/`, Manifest,
+  Icons) kommen bei installierten Apps erst an, wenn `APP_VERSION` steigt.
+- **Version nicht selbst hochzählen.** Der Nutzer sagt an, wann und auf welche
+  Nummer (MINOR bei neuen Funktionen, sonst PATCH). Am Ende einer Aufgabe nur
+  darauf hinweisen, dass ein Versionssprung aussteht.
+- **Neue Dateien** zusätzlich in `ASSETS` eintragen.
+- **`updateViaCache: "none"`** bei der Registrierung in `app.js` nicht
+  entfernen. Ohne diese Option holt der Browser `version.js` aus dem
+  HTTP-Cache, und der Versionssprung bleibt unbemerkt.
+- Beim Wechsel auf einen neuen Service Worker zeigt `app.js` den Toast „Neue
+  Version verfügbar“. Beim allerersten Start erscheint er bewusst nicht.
+- **iPad:** Das Home-Bildschirm-Icon braucht eine PNG-Datei
+  (`icons/icon-180.png`). Die PNGs werden aus `icons/icon.svg` gerendert.
+  Wenn sich das SVG ändert, die PNGs neu erzeugen.

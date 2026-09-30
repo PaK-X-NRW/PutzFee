@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- PutzFee-Icon: Puppenhaus mit Fee. Vollflächiger Hintergrund und
+       Motiv im inneren 80-%-Kreis, damit es auch als „maskable" passt. -->
+  <rect width="512" height="512" fill="#fff3e0"/>
+  <circle cx="256" cy="270" r="200" fill="#ffe3cf"/>
+  <!-- Haus -->
+  <rect x="146" y="222" width="220" height="176" rx="8" fill="#f6d5d0" stroke="#8a5a3b" stroke-width="12"/>
+  <path d="M146 312 H366" stroke="#8a5a3b" stroke-width="10"/>
+  <path d="M256 222 V398" stroke="#8a5a3b" stroke-width="10"/>
+  <path d="M118 236 L256 118 L394 236 Z" fill="#c75b4a" stroke="#8a3a2e" stroke-width="12" stroke-linejoin="round"/>
+  <circle cx="256" cy="190" r="16" fill="#cfe9f7" stroke="#8a5a3b" stroke-width="6"/>
+  <path d="M146 398 H366" stroke="#7cb35a" stroke-width="12" stroke-linecap="round"/>
+  <!-- Fee -->
+  <g transform="translate(256 300) scale(4.2)" stroke-linejoin="round" stroke-linecap="round">
+    <circle r="30" fill="#b7f0c4" opacity=".45"/>
+    <ellipse cx="-12" cy="-6" rx="12" ry="17" fill="#e4fff0" stroke="#4f9d69" stroke-width="1.5"/>
+    <ellipse cx="12" cy="-6" rx="12" ry="17" fill="#e4fff0" stroke="#4f9d69" stroke-width="1.5"/>
+    <path d="M-10 18 L0 -4 L10 18Z" fill="#3fae5a" stroke="#5b4636" stroke-width="1.5"/>
+    <circle cy="-11" r="7" fill="#ffe0c2" stroke="#5b4636" stroke-width="1.5"/>
+    <path d="M-7 -12 Q0 -24 7 -12 Q4 -18 0 -18 Q-4 -18 -7 -12Z" fill="#7ac943" stroke="#5b4636" stroke-width="1.2"/>
+    <circle cx="-2.5" cy="-11" r=".9" fill="#5b4636"/>
+    <circle cx="2.5" cy="-11" r=".9" fill="#5b4636"/>
+    <path d="M-2 -8 Q0 -6.5 2 -8" fill="none" stroke="#5b4636" stroke-width="1"/>
+    <path d="M7 4 L19 -14" stroke="#8a5a3b" stroke-width="2"/>
+    <path d="M20 -21 L21.3 -17.8 L24.8 -17.5 L22.1 -15.3 L23 -11.9 L20 -13.8 L17 -11.9 L17.9 -15.3 L15.2 -17.5 L18.7 -17.8Z" fill="#ffe066" stroke="#5b4636" stroke-width="1"/>
+  </g>
+  <path d="M120 150 l5 11 12 1 -9 8 3 12 -11 -6 -11 6 3 -12 -9 -8 12 -1Z" fill="#ffe066" stroke="#c9a227" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M392 128 l4 9 10 1 -8 6 3 10 -9 -5 -9 5 3 -10 -8 -6 10 -1Z" fill="#ffe066" stroke="#c9a227" stroke-width="3" stroke-linejoin="round"/>
+</svg>

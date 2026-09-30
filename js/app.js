@@ -8,6 +8,7 @@
    - Menü ☰: Sichern (Datei), Wiederherstellen, Haus leeren
    - Abhaken zeigt einen Toast mit „Rückgängig"
    - Um Mitternacht (App bleibt offen) rechnet die Anzeige neu
+   - Service Worker (nur über http/https) + Toast „Neue Version verfügbar"
    Interaktion über data-action / data-change + zentrale Delegation.
    ===================================================================== */
 (function (global) {
@@ -311,9 +312,42 @@
   document.addEventListener("visibilitychange", () => { if (!document.hidden) tagPruefen(); });
   global.addEventListener("unhandledrejection", (ev) => UI.fehlerMelden(ev.reason));
 
+  // ---- Menü-Infos: Version, Hinweis zum Installieren ------------------------
+  function installiert() {
+    return navigator.standalone === true ||
+      (global.matchMedia && global.matchMedia("(display-mode: standalone)").matches);
+  }
+
+  function menueInfos() {
+    $("#version").textContent = "PutzFee " + global.APP_VERSION;
+    $("#installieren").innerHTML = installiert() ? "" :
+      "<b>📲 Als App nutzen</b>iPad: in Safari auf Teilen ⬆︎ → „Zum Home-Bildschirm“. " +
+      "Dann läuft PutzFee auch offline, und Safari räumt die Daten nicht weg.";
+  }
+
+  // ---- Service Worker (wie Noten-Fritze) ----------------------------------------
+  function serviceWorkerStarten() {
+    if (!("serviceWorker" in navigator) || !location.protocol.startsWith("http")) return;
+    // Nur wenn schon ein Service Worker steuert, ist ein Wechsel ein Update
+    // (und nicht die allererste Installation)
+    const schonAktiv = !!navigator.serviceWorker.controller;
+    // updateViaCache "none": sonst kommt die per importScripts geladene
+    // version.js aus dem HTTP-Cache und der Versionssprung bleibt unbemerkt
+    navigator.serviceWorker.register("service-worker.js", { updateViaCache: "none" })
+      .then((reg) => reg.update())
+      .catch((e) => console.warn("Service Worker:", e));
+    if (schonAktiv) {
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        UI.toast("Neue Version verfügbar", { duration: 15000, aktion: { text: "Neu laden", fn: () => location.reload() } });
+      });
+    }
+  }
+
   // ---- Start --------------------------------------------------------------
+  menueInfos();
   Store.start(heuteEcht())
     .then(neuLaden)
+    .then(serviceWorkerStarten)
     .catch((e) => {
       console.error(e);
       $("#haus").innerHTML = '<div class="startfehler"><b>PutzFee kann hier nichts speichern.</b>' +

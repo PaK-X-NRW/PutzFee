@@ -10,6 +10,9 @@ PutzFee.
 - **100 % lokal:** keine Anmeldung, kein Server und kein Abgleich zwischen Geräten.
 - **Tablet quer:** für Touch-Bedienung gebaut.
 - **Ohne Build-Schritt:** Vanilla HTML/CSS/JS, läuft per Doppelklick auf `index.html`.
+- **PWA:** offline nutzbar und installierbar. Auf dem iPad in Safari: Teilen ⬆︎ →
+  „Zum Home-Bildschirm“. Installiert räumt Safari die Daten nicht nach 7 Tagen
+  ohne Besuch weg.
 - **Online:** https://putzfee.patrick-knapp.de (GitHub Pages).
 
 ## Stand: Hausansicht mit Speicherung
@@ -69,11 +72,23 @@ Tage werden als fortlaufende Tageszahl des lokalen Datums gespeichert
 | `js/db.js` | `DB` | IndexedDB-Wrapper, übernommen aus Noten-Fritze |
 | `js/ui.js` | `UI` | `esc`, Toast (mit Aktion), `fehlerMelden` |
 | `js/store.js` | `Store` | Start/Migration, Räume, Aufgaben, Erledigen und Rückgängig, Haus leeren, Backup |
-| `js/app.js` | – | Zustand, Raum-Panel, Vorschau, Menü, Klick-Delegation, Start |
+| `js/app.js` | – | Zustand, Raum-Panel, Vorschau, Menü, Klick-Delegation, Start, Service-Worker-Registrierung |
+| `js/version.js` | `APP_VERSION` | App-Version, zugleich Name des Offline-Caches |
+| `service-worker.js` | – | Offline-Cache der App-Shell (cache-first, Liste `ASSETS`) |
+| `manifest.webmanifest`, `icons/` | – | Name, Farben und Icons für die Installation; PNGs für iPad, SVG für Browser |
+
+## Neue Version veröffentlichen
+
+1. Zuerst `APP_VERSION` in `js/version.js` erhöhen: MINOR bei neuen Funktionen,
+   sonst PATCH.
+2. Neue Dateien in `ASSETS` in `service-worker.js` eintragen.
+3. Pushen. GitHub Pages baut neu.
+
+Installierte Apps zeigen dann „Neue Version verfügbar“ mit „Neu laden“. Ohne
+den Versionssprung bleibt die alte Version im Cache.
 
 ## Geplante nächste Schritte
 
-1. PWA (offline, Service Worker, zum Home-Bildschirm hinzufügen)
-2. Listenansicht nach Dringlichkeit und „Aufgaben pro Tag"
-3. Challenge-Kacheln: Blitzschnell · Ganz gewöhnlich · Ganz gründlich · Überall sauber
-4. Selbsttest `tests.html` für die Rechenregeln
+1. Listenansicht nach Dringlichkeit und „Aufgaben pro Tag"
+2. Challenge-Kacheln: Blitzschnell · Ganz gewöhnlich · Ganz gründlich · Überall sauber
+3. Selbsttest `tests.html` für die Rechenregeln
