@@ -4,7 +4,8 @@
    - RAEUME: alle Räume des Puppenhauses (id = Platz im Plan, typ, name)
    - VORLAGEN: vorgegebene Aufgaben als Inspiration
    - daten(heute): Beispielhaushalt; „zuletzt" relativ zu heute, damit
-     jeder Status einmal zu sehen ist (Fee, Biohazard, grau …)
+     jeder Status einmal zu sehen ist (Fee, Biohazard, grau …).
+     Speichert nichts – Store.start legt ihn beim ersten Start an.
    ===================================================================== */
 (function (global) {
   "use strict";
@@ -151,8 +152,7 @@
         kueche: ["uhr"],
         flur: ["uhr"],
         kinder1: ["bild"]
-      },
-      naechsteId: n + 1
+      }
     };
   }
 

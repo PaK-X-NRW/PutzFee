@@ -18,17 +18,28 @@
       <button data-action="heute">Heute</button>
     </div>
     <div id="gesamt" class="gesamt"></div>
+    <button class="rund" data-action="menue" aria-label="Menü">☰</button>
   </header>
+  <div id="menue" class="menue">
+    <button data-action="sichern">💾 Sichern <small>Alle Daten als Datei speichern</small></button>
+    <button data-action="wiederherstellen">📂 Wiederherstellen <small>Sicherung laden (ersetzt alles)</small></button>
+    <button data-action="leeren">🧹 Haus leeren <small>Aufgaben und Deko löschen, selbst einrichten</small></button>
+  </div>
+  <input id="datei-import" type="file" accept=".json,application/json" data-change="import" hidden>
   <main class="buehne">
     <div id="haus"></div>
+    <div id="vorschau" class="vorschau-banner"></div>
     <aside id="panel" class="panel"></aside>
-    <div class="hinweis">Raum oder Möbelstück antippen · mit ▶ die Zeit vorspulen und zusehen, wie es schmutzig wird</div>
+    <div class="hinweis">Raum oder Möbelstück antippen · mit ▶ in die Zukunft schauen (Vorschau)</div>
   </main>
 
+  <script src="js/db.js"></script>
+  <script src="js/ui.js"></script>
   <script src="js/calc.js"></script>
   <script src="js/moebel.js"></script>
   <script src="js/haus.js"></script>
   <script src="js/demo.js"></script>
+  <script src="js/store.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

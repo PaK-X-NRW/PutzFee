@@ -79,7 +79,31 @@ Es gibt zwei Ansichten:
 - Bei offenen fachlichen Fragen (Haushaltsabläufe, Spielregeln) **fragen, nicht
   raten**.
 
-## 4. Arbeitsweise
+## 4. Daten
+
+- Views schreiben nie direkt in `DB`, immer über den `Store`. Danach
+  `neuLaden()` in `app.js` aufrufen: Das lädt die Daten neu und rendert.
+- **Alles oder nichts:** Schreibvorgänge über mehrere Stores laufen über
+  `DB.atomar` in einer Transaktion. Darin nur synchron `put`/`delete`/`clear`
+  aufrufen, kein `await`. Deshalb vorher lesen.
+- **Verlauf:** Abhaken schreibt einen Eintrag in `erledigungen` und setzt
+  `aufgabe.zuletzt`. Löschen einer Aufgabe nimmt ihren Verlauf mit.
+- **Tage:** gespeichert als Tageszahl des lokalen Datums (`Calc.tagNr`), nie
+  über UTC.
+- **Vorschau:** Der Versatz (`state.versatz`) verschiebt nur die Anzeige.
+  Abhaken schreibt immer das echte Heute und ist während der Vorschau gesperrt.
+- **Neue Felder oder geänderte Datenform:** `SCHEMA_VERSION` in `store.js`
+  erhöhen und einen Schritt in `MIGRATION_STEPS` ergänzen.
+  - Jeder Schritt muss wiederholbar sein, weil ein älteres Backup die Schritte
+    ab seiner Version erneut laufen lässt.
+  - Neue Stores bekommen einen `DB_VERSION`-Sprung in `db.js`, und zwar
+    additiv.
+- **Backups:** `importAll` prüft die Datei vor dem Schreiben und lehnt
+  Sicherungen aus einer neueren Datenversion ab.
+- **Testen mit IndexedDB:** Headless-Browser öffnen IndexedDB unter `file://`
+  nicht. Deshalb über einen lokalen Server testen (`python -m http.server`).
+
+## 5. Arbeitsweise
 
 - **Erst planen, dann bauen:** betroffene Stellen lesen, den Plan kurz
   vorlegen und auf Zustimmung warten. Ausnahme sind winzige, offensichtliche

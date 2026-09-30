@@ -403,7 +403,7 @@
       const geo = LAGE[r.id];
       if (!geo) return;
       const aufgaben = daten.aufgaben.filter((a) => a.raumId === r.id);
-      s += raumSVG(r, geo, infos[r.id], aufgaben, daten.deko[r.id] || [], heute, tiere[r.id] || [], auswahl === r.id);
+      s += raumSVG(r, geo, infos[r.id], aufgaben, r.deko || [], heute, tiere[r.id] || [], auswahl === r.id);
     });
     return s + "</svg>";
   }
