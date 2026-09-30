@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fff3e0">
+  <title>PutzFee</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo">🧚 PutzFee <span class="proto">Prototyp</span></div>
+    <div class="zeit">
+      <button data-action="tag" data-d="-1" aria-label="Einen Tag zurück">◀</button>
+      <span id="datum"></span>
+      <button data-action="tag" data-d="1" aria-label="Einen Tag vor">▶</button>
+      <button data-action="tag" data-d="7">+1 Woche</button>
+      <button data-action="heute">Heute</button>
+    </div>
+    <div id="gesamt" class="gesamt"></div>
+  </header>
+  <main class="buehne">
+    <div id="haus"></div>
+    <aside id="panel" class="panel"></aside>
+    <div class="hinweis">Raum oder Möbelstück antippen · mit ▶ die Zeit vorspulen und zusehen, wie es schmutzig wird</div>
+  </main>
+
+  <script src="js/calc.js"></script>
+  <script src="js/moebel.js"></script>
+  <script src="js/haus.js"></script>
+  <script src="js/demo.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

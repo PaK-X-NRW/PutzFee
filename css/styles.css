@@ -1,0 +1,124 @@
+/* =====================================================================
+   styles.css – Puppenhaus-Optik der PutzFee (Tablet quer)
+   ===================================================================== */
+:root {
+  --papier: #fdf6ec;
+  --tinte: #5b4636;
+  --rahmen: #e0c097;
+  --akzent: #e07a5f;
+  --gruen: #3fae5a;
+  --rot: #d62828;
+  font-family: "Avenir Next Rounded", "Arial Rounded MT Bold", "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+html, body { margin: 0; height: 100%; background: var(--papier); color: var(--tinte); }
+body { display: flex; flex-direction: column; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+
+button {
+  font: inherit; color: inherit; background: #fff; border: 2px solid var(--rahmen);
+  border-radius: 12px; padding: 6px 12px; min-height: 40px; cursor: pointer;
+}
+button:active { transform: translateY(1px); }
+
+.topbar {
+  flex: 0 0 auto; height: 58px; display: flex; align-items: center; gap: 18px; padding: 0 16px;
+  background: #fff3e0; border-bottom: 3px solid var(--rahmen);
+}
+.logo { font-size: 24px; font-weight: 800; letter-spacing: .5px; white-space: nowrap; }
+.proto { font-size: 11px; font-weight: 700; background: var(--akzent); color: #fff; border-radius: 10px; padding: 2px 8px; vertical-align: middle; }
+.zeit { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+#datum { min-width: 190px; text-align: center; font-weight: 700; }
+.gesamt { font-weight: 800; white-space: nowrap; }
+
+.buehne { flex: 1 1 auto; position: relative; min-height: 0; }
+#haus { position: absolute; inset: 0; padding: 6px; box-sizing: border-box; }
+#haus svg { width: 100%; height: 100%; display: block; user-select: none; -webkit-user-select: none; }
+.hinweis {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-size: 13px; white-space: nowrap;
+  background: rgba(255, 255, 255, .85); padding: 4px 14px; border-radius: 14px; pointer-events: none;
+}
+
+/* ---- SVG ---- */
+.raum { cursor: pointer; }
+.moebel { cursor: pointer; }
+.moebel:hover { filter: brightness(1.08); }
+.schild-name { font-size: 12.5px; font-weight: 800; fill: var(--tinte); text-anchor: middle; }
+.schild-prozent { font-size: 11px; font-weight: 800; fill: var(--tinte); text-anchor: end; }
+.schild-spruch { font-size: 10.5px; font-style: italic; fill: #7a6250; text-anchor: middle; }
+.schild-leer { font-size: 10.5px; font-style: italic; fill: #9a918a; text-anchor: middle; }
+.schild-bio { font-size: 11px; font-weight: 900; letter-spacing: 1.5px; fill: var(--rot); text-anchor: middle; animation: pulsieren 1.2s ease-in-out infinite; }
+.auswahl { animation: laufen 1s linear infinite; }
+
+.schwebt { animation: schweben 2.6s ease-in-out infinite; }
+.fluegel { transform-box: fill-box; transform-origin: center; animation: flattern .3s ease-in-out infinite alternate; }
+.flattert { transform-box: fill-box; transform-origin: center; animation: flattern .25s ease-in-out infinite alternate; }
+.funkeln { transform-box: fill-box; transform-origin: center; animation: funkeln 1.6s ease-in-out infinite; }
+.dampf { animation: dampf 2.2s ease-in-out infinite; }
+
+@keyframes schweben { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes flattern { from { transform: scaleX(1); } to { transform: scaleX(.55); } }
+@keyframes funkeln { 0%, 100% { opacity: .2; transform: scale(.6); } 50% { opacity: 1; transform: scale(1); } }
+@keyframes dampf { 0% { opacity: 0; transform: translateY(4px); } 50% { opacity: .9; } 100% { opacity: 0; transform: translateY(-8px); } }
+@keyframes pulsieren { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+@keyframes laufen { to { stroke-dashoffset: -32; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .schwebt, .fluegel, .flattert, .funkeln, .dampf, .schild-bio, .auswahl { animation: none; }
+}
+
+/* ---- Panel ---- */
+.panel {
+  position: absolute; top: 12px; bottom: 12px; width: 360px; box-sizing: border-box; overflow: auto;
+  padding: 14px 16px 18px; background: #fffaf2; border: 3px solid var(--rahmen); border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(91, 70, 54, .25); display: none;
+}
+.panel.offen { display: block; }
+.panel.rechts { right: 12px; }
+.panel.links { left: 12px; }
+.panel-kopf { display: flex; gap: 8px; align-items: center; }
+.raumname {
+  flex: 1; font: inherit; font-size: 20px; font-weight: 800; color: var(--tinte); min-width: 0;
+  border: 2px dashed transparent; border-radius: 10px; padding: 4px 6px; background: transparent;
+}
+.raumname:hover, .raumname:focus { border-color: var(--rahmen); background: #fff; outline: none; }
+.rund { border-radius: 50%; width: 40px; padding: 0; }
+
+.status { margin: 10px 0 12px; padding: 10px 12px; border-radius: 14px; background: #f3ede4; }
+.status b { display: block; font-size: 17px; }
+.status span { font-size: 13px; font-style: italic; }
+.status-biohazard { background: #ffe3df; color: var(--rot); }
+.status-sauber { background: #e3f5e1; }
+.status-blitzsauber { background: #d4f5d9; color: #22713a; }
+.status-schmutzig { background: #fff0d6; }
+
+.aufgaben { list-style: none; margin: 0; padding: 0; }
+.aufgaben li {
+  display: flex; align-items: center; gap: 10px; padding: 8px 6px; border-bottom: 1px dashed #ead9c2;
+  border-radius: 10px;
+}
+.aufgaben li.fokus { background: #fff1c9; }
+.punkt { flex: 0 0 18px; height: 18px; border-radius: 50%; border: 2px solid; box-sizing: border-box; }
+.a-text { flex: 1; min-width: 0; }
+.a-text b { display: block; font-size: 15px; }
+.a-text small { display: block; font-size: 12px; color: #8a7462; }
+.haken { background: var(--gruen); border-color: #2f8a45; color: #fff; font-weight: 900; width: 44px; padding: 0; }
+.aufgaben li.erledigt .haken { background: #fff; color: var(--gruen); }
+.weg { width: 34px; min-height: 34px; padding: 0; border-color: transparent; background: transparent; color: #b8a390; }
+
+.neu { margin-top: 14px; background: #fff; border: 2px solid var(--rahmen); border-radius: 14px; padding: 8px 12px; }
+.neu summary { font-weight: 800; cursor: pointer; padding: 4px 0; }
+.neu label { display: block; font-size: 13px; margin: 8px 0 0; }
+.neu select, .neu input:not([type]), .neu input[type="number"] {
+  display: block; width: 100%; box-sizing: border-box; font: inherit; font-size: 15px; margin-top: 3px;
+  padding: 7px 8px; border: 2px solid var(--rahmen); border-radius: 10px; background: #fffdf9; color: var(--tinte);
+}
+.rhythmus { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 10px; font-size: 14px; }
+.rhythmus label.inline { display: inline; margin: 0; font-size: 14px; }
+.rhythmus input[type="number"] { width: 70px; display: inline-block; margin: 0; }
+.rhythmus .tag { display: inline-flex; align-items: center; gap: 2px; margin: 0; font-size: 13px; }
+.primaer { margin-top: 12px; width: 100%; background: var(--akzent); border-color: #c4623f; color: #fff; font-weight: 800; }
+
+.panel h3 { margin: 16px 0 8px; font-size: 15px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { min-height: 34px; font-size: 13px; padding: 4px 10px; border-radius: 17px; }
+.chip.an { background: #ffe8b3; border-color: #e0a93b; font-weight: 700; }
