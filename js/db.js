@@ -9,7 +9,9 @@
 
   const DB_NAME = "putzfee";
   // v1: raeume, aufgaben, erledigungen, einstellungen
-  const DB_VERSION = 1;
+  // v2: moebel (einzelne Exemplare mit Position)
+  // v3: tiere (Katzen und Hunde mit Fellfarbe)
+  const DB_VERSION = 3;
 
   const STORES = {
     // Räume: feste Plätze im Haus (id = Platz), Name umbenennbar, Deko-Liste
@@ -20,6 +22,10 @@
                       { name: "aufgabeId", keyPath: "aufgabeId" },
                       { name: "tag", keyPath: "tag" }
                     ] },
+    // Exemplare: ein Möbelstück im Raum { id, raumId, typ, x } – x = Position (null = automatisch)
+    moebel:       { keyPath: "id", indexes: [{ name: "raumId", keyPath: "raumId" }] },
+    // Haustiere { id, art: "katze" | "hund", farbe }
+    tiere:        { keyPath: "id", indexes: [] },
     einstellungen:{ keyPath: "key", indexes: [] }
   };
 

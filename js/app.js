@@ -26,16 +26,26 @@
     { key: "aufraeumen", name: "Aufräumen (Unordnung)" },
     { key: "staubwischen", name: "Staub wischen (Spinnweben)" },
     { key: "staubsaugen", name: "Staubsaugen (Wollmäuse)" },
-    { key: "wischen", name: "Boden wischen (Flecken)" }
+    { key: "wischen", name: "Boden wischen (Flecken)" },
+    { key: "waesche", name: "Wäsche waschen (Wäscheberg)" },
+    { key: "glas", name: "Tisch abwischen (umgekipptes Glas)" },
+    { key: "flecken", name: "Möbel reinigen (Flecken)" },
+    { key: "fliegen", name: "Fliegen vertreiben" },
+    { key: "fenster", name: "Fenster putzen (Schmutz)" },
+    { key: "handtuch", name: "Dusche putzen (Handtuch)" }
   ];
 
   const state = {
-    daten: { raeume: [], aufgaben: [] },
+    daten: { raeume: [], aufgaben: [], moebel: [], tiere: [] },
     versatz: 0,
     auswahl: null,
     fokusMoebel: null,
     menue: false,
-    gerenderterTag: null
+    gerenderterTag: null,
+    umgestalten: false,
+    tierArt: "katze",
+    bearbeitId: null,
+    zugGerade: false
   };
 
   function heuteEcht() { return Calc.tagNr(new Date()); }
@@ -53,10 +63,37 @@
   // ---- Render -----------------------------------------------------------
   function render() {
     state.gerenderterTag = heuteEcht();
-    $("#haus").innerHTML = Haus.render(state.daten, heute(), state.auswahl);
+    $("#haus").innerHTML = Haus.render(state.daten, heute(), state.auswahl, state.umgestalten);
+    $("#haus").style.touchAction = state.umgestalten ? "none" : "";
+    renderTiere();
     renderKopf();
     renderPanel();
     $("#menue").className = "menue" + (state.menue ? " offen" : "");
+  }
+
+  // ---- Haustiere im Menü ---------------------------------------------------
+  function farbName(art, farbe) {
+    const f = M.TIER_FARBEN[art].find((x) => x[0] === farbe);
+    return f ? f[1] : farbe;
+  }
+
+  function renderTiere() {
+    const el = $("#tiere");
+    if (!el) return;
+    const liste = state.daten.tiere || [];
+    const art = state.tierArt;
+    const anzahl = liste.filter((t) => t.art === art).length;
+    let s = "<b>🐾 Haustiere</b>";
+    liste.forEach((t) => {
+      s += '<div class="tier-zeile">' + esc(M.TIERE[t.art].name + " · " + farbName(t.art, t.farbe)) +
+        ' <button data-action="tier-weg" data-id="' + esc(t.id) + '" title="Entfernen">✕</button></div>';
+    });
+    s += '<div class="tier-neu"><select data-change="tier-art">' +
+      Object.keys(M.TIERE).map((k) => '<option value="' + k + '"' + (k === art ? " selected" : "") + ">" + M.TIERE[k].name + "</option>").join("") +
+      '</select> <select id="t-farbe">' + M.TIER_FARBEN[art].map((f) => '<option value="' + f[0] + '">' + f[1] + "</option>").join("") +
+      '</select> <button data-action="tier-neu"' + (anzahl >= 4 ? " disabled" : "") + ">Hinzufügen</button>" +
+      (anzahl >= 4 ? "<small>Höchstens 4 Tiere pro Art.</small>" : "") + "</div>";
+    el.innerHTML = s;
   }
 
   function renderKopf() {
@@ -76,14 +113,48 @@
     $("#gesamt").textContent = "Haus: " + (alle ? Math.round(erl / alle * 100) : 0) + " % erledigt";
   }
 
-  function moebelOptionen() {
+  function moebelOptionen(aktuell) {
     const gruppen = {};
     Object.keys(M.KATALOG).forEach((k) => {
       const d = M.KATALOG[k];
-      (gruppen[d.gruppe] = gruppen[d.gruppe] || []).push('<option value="' + k + '">' + d.name + "</option>");
+      (gruppen[d.gruppe] = gruppen[d.gruppe] || []).push('<option value="' + k + '"' + (k === aktuell ? " selected" : "") + ">" + d.name + "</option>");
     });
     return '<option value="">– kein Möbelstück –</option>' +
-      Object.keys(gruppen).map((gr) => '<optgroup label="' + gr + '">' + gruppen[gr].join("") + "</optgroup>").join("");
+      Object.keys(gruppen).map((gr) => '<optgroup label="' + gr + '">' + gruppen[gr].join("") + "</optgroup>").join("") +
+      '<optgroup label="Treppenhaus"><option value="treppe"' + (aktuell === "treppe" ? " selected" : "") + ">Treppe (je Etage)</option></optgroup>";
+  }
+
+  function etageName(key) {
+    const e = Haus.ETAGEN.find((x) => x.key === key);
+    return e ? e.name : "";
+  }
+
+  // Exemplare: Auswahl im Formular und Nummerierung, wenn ein Typ mehrfach im Raum steht
+  function exemplareDesRaums(typ) {
+    return state.daten.moebel.filter((m) => m.raumId === state.auswahl && m.typ === typ);
+  }
+
+  function exemplarOptionen(typ, aktuell) {
+    let s = '<option value="neu">neues Exemplar</option>';
+    exemplareDesRaums(typ).forEach((m, i) => {
+      s += '<option value="' + esc(m.id) + '"' + (m.id === aktuell ? " selected" : "") + ">" + M.KATALOG[typ].name + " " + (i + 1) + "</option>";
+    });
+    return s;
+  }
+
+  function exemplarTitel(m) {
+    const name = M.KATALOG[m.typ].name;
+    const gleiche = state.daten.moebel.filter((x) => x.raumId === m.raumId && x.typ === m.typ);
+    return gleiche.length < 2 ? name : name + " " + (gleiche.indexOf(m) + 1);
+  }
+
+  function exemplarZusatz(a) {
+    if (!a.moebelId) return "";
+    const m = state.daten.moebel.find((x) => x.id === a.moebelId);
+    if (!m) return "";
+    const gleiche = exemplareDesRaums(m.typ);
+    if (gleiche.length < 2) return "";
+    return M.KATALOG[m.typ].name + " " + (gleiche.indexOf(m) + 1) + " · ";
   }
 
   function renderPanel() {
@@ -98,11 +169,15 @@
     const seite = geo.x + geo.w / 2 > 800 ? "links" : "rechts";
     const h = heute();
     const vorschau = state.versatz !== 0;
+    const umg = state.umgestalten;
     const info = Calc.raumStand(state.daten.aufgaben.filter((a) => a.raumId === raum.id), h);
     const aufgaben = state.daten.aufgaben
       .filter((a) => a.raumId === raum.id)
       .map((a) => ({ a: a, st: Calc.aufgabenStand(a, h) }))
       .sort((x, y) => y.st.anteil - x.st.anteil);
+    const fokusKey = (a) => (a.moebel === "treppe" ? "treppe-" + a.exemplar : a.moebelId);
+    const bearb = state.bearbeitId ? state.daten.aufgaben.find((a) => a.id === state.bearbeitId) : null;
+    const v = bearb || {};
 
     let s = '<div class="panel-kopf"><input class="raumname" data-change="umbenennen" value="' + esc(raum.name) + '" aria-label="Raumname">' +
       '<button class="rund" data-action="schliessen" aria-label="Schließen">✕</button></div>';
@@ -116,32 +191,64 @@
     }
     s += "</div>";
 
+    s += '<div class="umgestalten-zeile"><button class="' + (umg ? "primaer" : "") + '" data-action="umgestalten">' +
+      (umg ? "✓ Fertig" : "✥ Möbel verschieben") + "</button>" +
+      (umg ? "<small>Möbel mit dem Finger an die gewünschte Stelle ziehen.</small>" : "") + "</div>";
+
+    if (umg && raum.typ === "flur") {
+      const exemplare = state.daten.moebel.filter((m) => m.raumId === raum.id && state.daten.aufgaben.some((a) => a.moebelId === m.id));
+      const etagenWahl = (aktuell, datenAttr) => '<select ' + datenAttr + ">" +
+        Haus.ETAGEN.filter((e) => e.key !== "dach").map((e) => '<option value="' + e.key + '"' + ((aktuell || "eg") === e.key ? " selected" : "") + ">" + e.name + "</option>").join("") +
+        "</select>";
+      const deko = (raum.deko || []).filter((k) => M.DEKO[k]);
+      if (exemplare.length || deko.length) {
+        s += '<div class="etagen"><small>Auf welcher Etage steht es?</small>' +
+          exemplare.map((m) => "<label>" + esc(exemplarTitel(m)) + " " +
+            etagenWahl(m.etage, 'data-change="etage" data-id="' + esc(m.id) + '"') + "</label>").join("") +
+          deko.map((k) => "<label>" + esc(M.DEKO[k].name) + " " +
+            etagenWahl((raum.dekoEtage || {})[k], 'data-change="dekoetage" data-key="' + k + '"') + "</label>").join("") +
+          "</div>";
+      }
+    }
+
     s += '<ul class="aufgaben">';
     aufgaben.forEach((x) => {
       const f = Calc.heatFarbe(x.st.anteil);
-      const fokus = state.fokusMoebel && x.a.moebel === state.fokusMoebel;
-      s += '<li class="' + (x.st.erledigt ? "erledigt" : "offen") + (fokus ? " fokus" : "") + '">' +
+      const fokus = state.fokusMoebel && fokusKey(x.a) === state.fokusMoebel;
+      const zusatz = x.a.moebel === "treppe" ? etageName(x.a.exemplar) + " · " : exemplarZusatz(x.a);
+      s += '<li class="' + (x.st.erledigt ? "erledigt" : "offen") + (fokus ? " fokus" : "") + (bearb === x.a ? " bearbeitet" : "") + '">' +
         '<span class="punkt" style="background:' + f.fill + ";border-color:" + f.dunkel + '"></span>' +
-        '<div class="a-text"><b>' + esc(x.a.titel) + "</b><small>" + Calc.rhythmusText(x.a.rhythmus) + " · " + Calc.standText(x.a, h) + "</small></div>" +
+        '<div class="a-text"><b>' + esc(x.a.titel) + "</b><small>" + zusatz + Calc.rhythmusText(x.a.rhythmus) + " · " + Calc.standText(x.a, h) + "</small></div>" +
         '<button class="haken" data-action="erledigt" data-id="' + esc(x.a.id) + '"' + (vorschau ? " disabled" : "") +
         ' title="' + (vorschau ? "In der Vorschau nicht möglich" : "Erledigt") + '">✓</button>' +
+        '<button data-action="bearbeiten" data-id="' + esc(x.a.id) + '" title="Aufgabe bearbeiten">✎</button>' +
         '<button class="weg" data-action="loeschen" data-id="' + esc(x.a.id) + '" title="Aufgabe löschen">✕</button></li>';
     });
     s += "</ul>";
 
-    // Neue Aufgabe
-    s += '<details class="neu"' + (aufgaben.length ? "" : " open") + "><summary>＋ Neue Aufgabe</summary>" +
+    // Formular: neue Aufgabe, oder – im Bearbeiten-Modus – die gewählte Aufgabe
+    const wochentage = !!v.rhythmus && v.rhythmus.art === "wochentage";
+    const wt = wochentage ? v.rhythmus.wochentage : [];
+    const moebelHier = !!v.moebel && v.moebel !== "treppe";
+    s += '<details class="neu"' + (aufgaben.length && !bearb ? "" : " open") + "><summary>" + (bearb ? "✎ Aufgabe bearbeiten" : "＋ Neue Aufgabe") + "</summary>" +
       '<label>Vorlage<select data-change="vorlage"><option value="">– eigene Aufgabe –</option>' +
-      global.Demo.VORLAGEN.map((v, i) => '<option value="' + i + '">' + esc(v.titel) + " (" + Calc.rhythmusText(v.rhythmus) + ")</option>").join("") +
+      global.Demo.VORLAGEN.map((vl, i) => '<option value="' + i + '">' + esc(vl.titel) + " (" + Calc.rhythmusText(vl.rhythmus) + ")</option>").join("") +
       "</select></label>" +
-      '<label>Titel<input id="f-titel" placeholder="z. B. Fenster putzen"></label>' +
-      '<label>Möbelstück (erscheint im Raum)<select id="f-moebel">' + moebelOptionen() + "</select></label>" +
-      '<label>Effekt im Raum<select id="f-effekt">' + EFFEKTE.map((e) => '<option value="' + e.key + '">' + e.name + "</option>").join("") + "</select></label>" +
-      '<div class="rhythmus"><label class="inline"><input type="radio" name="f-art" value="intervall" checked> alle</label>' +
-      '<input id="f-tage" type="number" min="1" max="365" value="7"> Tage</div>' +
-      '<div class="rhythmus"><label class="inline"><input type="radio" name="f-art" value="wochentage"> an</label>' +
-      [1, 2, 3, 4, 5, 6, 0].map((t) => '<label class="tag"><input type="checkbox" class="f-wt" value="' + t + '">' + Calc.WOCHENTAGE[t] + "</label>").join("") + "</div>" +
-      '<button class="primaer" data-action="aufgabe-neu">Aufgabe anlegen</button></details>';
+      '<label>Titel<input id="f-titel" value="' + esc(v.titel || "") + '" placeholder="z. B. Fenster putzen"></label>' +
+      '<label>Möbelstück (erscheint im Raum)<select id="f-moebel" data-change="moebel-wahl">' + moebelOptionen(v.moebel || "") + "</select></label>" +
+      '<label id="f-exemplar-zeile"' + (moebelHier ? "" : " hidden") + '>Exemplar<select id="f-exemplar">' +
+        (moebelHier ? exemplarOptionen(v.moebel, v.moebelId) : "") + "</select></label>" +
+      '<label id="f-etage-zeile"' + (v.moebel === "treppe" ? "" : " hidden") + '>Etage<select id="f-etage">' +
+        Haus.ETAGEN.map((e) => '<option value="' + e.key + '"' + (e.key === v.exemplar ? " selected" : "") + ">" + e.name + "</option>").join("") + "</select></label>" +
+      '<label>Effekt im Raum<select id="f-effekt">' + EFFEKTE.map((e) => '<option value="' + e.key + '"' + (e.key === (v.effekt || "") ? " selected" : "") + ">" + e.name + "</option>").join("") + "</select></label>" +
+      '<div class="rhythmus"><label class="inline"><input type="radio" name="f-art" value="intervall"' + (wochentage ? "" : " checked") + "> alle</label>" +
+      '<input id="f-tage" type="number" min="1" max="365" value="' + (v.rhythmus && !wochentage ? v.rhythmus.tage : 7) + '"> Tage</div>' +
+      '<div class="rhythmus"><label class="inline"><input type="radio" name="f-art" value="wochentage"' + (wochentage ? " checked" : "") + "> an</label>" +
+      [1, 2, 3, 4, 5, 6, 0].map((t) => '<label class="tag"><input type="checkbox" class="f-wt" value="' + t + '"' + (wt.indexOf(t) >= 0 ? " checked" : "") + ">" + Calc.WOCHENTAGE[t] + "</label>").join("") + "</div>" +
+      (bearb
+        ? '<button class="primaer" data-action="aufgabe-neu">Änderungen speichern</button> <button data-action="bearbeiten-ende">Abbrechen</button>'
+        : '<button class="primaer" data-action="aufgabe-neu">Aufgabe anlegen</button>') +
+      "</details>";
 
     // Deko
     const deko = raum.deko || [];
@@ -202,6 +309,19 @@
       await Store.dekoUmschalten(state.auswahl, el.dataset.key);
       await neuLaden();
     },
+    umgestalten: () => { state.umgestalten = !state.umgestalten; render(); },
+    "tier-neu": async () => {
+      const art = state.tierArt;
+      if (state.daten.tiere.filter((t) => t.art === art).length >= 4) return;
+      await Store.tierAnlegen(art, $("#t-farbe").value);
+      await neuLaden();
+    },
+    "tier-weg": async (el) => {
+      await Store.tierLoeschen(el.dataset.id);
+      await neuLaden();
+    },
+    bearbeiten: (el) => { state.bearbeitId = el.dataset.id; render(); },
+    "bearbeiten-ende": () => { state.bearbeitId = null; render(); },
     "aufgabe-neu": async () => {
       const titel = $("#f-titel").value.trim();
       if (!titel) { $("#f-titel").focus(); return; }
@@ -211,10 +331,21 @@
       const rhythmus = art === "wochentage"
         ? { art: "wochentage", wochentage: wt }
         : { art: "intervall", tage: Math.max(1, Math.min(365, Math.round(Number($("#f-tage").value)) || 7)) };
-      await Store.aufgabeAnlegen({
-        raumId: state.auswahl, titel: titel, rhythmus: rhythmus,
-        moebel: $("#f-moebel").value || null, effekt: $("#f-effekt").value || null
-      });
+      const moebel = $("#f-moebel").value || null;
+      const daten = {
+        titel: titel, rhythmus: rhythmus, moebel: moebel, effekt: $("#f-effekt").value || null,
+        exemplar: moebel === "treppe" ? $("#f-etage").value : null, moebelId: null
+      };
+      if (moebel && moebel !== "treppe") {
+        const wahl = $("#f-exemplar").value;
+        daten.moebelId = wahl === "neu" ? await Store.moebelAnlegen(state.auswahl, moebel) : wahl;
+      }
+      if (state.bearbeitId) {
+        await Store.aufgabeAendern(state.bearbeitId, daten);
+        state.bearbeitId = null;
+      } else {
+        await Store.aufgabeAnlegen(Object.assign({ raumId: state.auswahl }, daten));
+      }
       await neuLaden();
     },
 
@@ -249,11 +380,30 @@
       if (name) await Store.raumUmbenennen(state.auswahl, name);
       await neuLaden();
     },
+    dekoetage: async (el) => {
+      await Store.dekoEtage(state.auswahl, el.dataset.key, el.value);
+      await neuLaden();
+    },
+    "tier-art": (el) => {
+      state.tierArt = el.value;
+      renderTiere();
+    },
+    etage: async (el) => {
+      await Store.moebelEtage(el.dataset.id, el.value);
+      await neuLaden();
+    },
+    "moebel-wahl": (el) => {
+      const typ = el.value;
+      $("#f-etage-zeile").hidden = typ !== "treppe";
+      $("#f-exemplar-zeile").hidden = !typ || typ === "treppe";
+      $("#f-exemplar").innerHTML = typ && typ !== "treppe" ? exemplarOptionen(typ, null) : "";
+    },
     vorlage: (el) => {
       const v = global.Demo.VORLAGEN[Number(el.value)];
       if (!v) return;
       $("#f-titel").value = v.titel;
       $("#f-moebel").value = v.moebel || "";
+      $("#f-moebel").dispatchEvent(new Event("change", { bubbles: true }));
       $("#f-effekt").value = v.effekt || "";
       const wt = v.rhythmus.art === "wochentage";
       document.querySelector('input[name="f-art"][value="' + (wt ? "wochentage" : "intervall") + '"]').checked = true;
@@ -286,6 +436,7 @@
   }
 
   document.addEventListener("click", (ev) => {
+    if (state.zugGerade) { state.zugGerade = false; return; }
     const el = ev.target.closest("[data-action]");
     if (state.menue && !ev.target.closest("#menue") && !(el && el.dataset.action === "menue")) {
       state.menue = false;
@@ -302,6 +453,42 @@
   document.addEventListener("change", (ev) => {
     const el = ev.target.closest("[data-change]");
     if (el && AENDERUNGEN[el.dataset.change]) ausfuehren(AENDERUNGEN[el.dataset.change], el);
+  });
+
+  // ---- Möbel verschieben (nur im Umgestalten-Modus) -------------------------
+  // Während des Ziehens wird nur das Attribut transform geändert; gespeichert
+  // und neu gezeichnet wird beim Loslassen.
+  let zug = null;
+  function bildZuSvg(svg, px) {
+    return px * svg.viewBox.baseVal.width / svg.getBoundingClientRect().width;
+  }
+  document.addEventListener("pointerdown", (ev) => {
+    const el = ev.target.closest && ev.target.closest("[data-drag]");
+    if (!el || !state.umgestalten) return;
+    zug = { el: el, id: el.dataset.drag, x0: Number(el.dataset.x), startX: ev.clientX, bewegt: false, neuX: Number(el.dataset.x) };
+  });
+  document.addEventListener("pointermove", (ev) => {
+    if (!zug) return;
+    const dx = bildZuSvg(zug.el.ownerSVGElement, ev.clientX - zug.startX);
+    if (!zug.bewegt && Math.abs(dx) < 4) return;
+    zug.bewegt = true;
+    const raum = Haus.LAGE[zug.el.dataset.raum];
+    const w = Number(zug.el.dataset.w);
+    zug.neuX = Math.max(raum.x + 5, Math.min(zug.x0 + dx, raum.x + raum.w - 5 - w));
+    const skal = Number(zug.el.dataset.s);
+    zug.el.setAttribute("transform", "translate(" + (Math.round(zug.neuX * 10) / 10) + " " + zug.el.dataset.y + ")" +
+      (skal !== 1 ? " scale(" + skal + ")" : ""));
+  });
+  document.addEventListener("pointerup", () => {
+    const z = zug;
+    zug = null;
+    if (!z || !z.bewegt) return;
+    state.zugGerade = true;
+    setTimeout(() => { state.zugGerade = false; }, 0);
+    const speichern = z.id.indexOf("deko:") === 0
+      ? Store.dekoPosition(z.el.dataset.raum, z.id.slice(5), z.neuX)
+      : Store.moebelPosition(z.id, z.neuX);
+    speichern.then(neuLaden).catch(UI.fehlerMelden);
   });
 
   // Neuer Tag, während die App offen ist (Tablet an der Wand): neu rechnen

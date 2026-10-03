@@ -11,7 +11,10 @@
   "use strict";
 
   const RAEUME = [
-    { id: "dachboden", typ: "dachboden", name: "Dachboden" },
+    { id: "rumpelkammer", typ: "rumpelkammer", name: "Rumpelkammer" },
+    { id: "dachzimmer1", typ: "dachzimmer", name: "Dachzimmer 1" },
+    { id: "dachzimmer2", typ: "dachzimmer", name: "Dachzimmer 2" },
+    { id: "buero", typ: "buero", name: "Büro" },
     { id: "schlafzimmer", typ: "schlafzimmer", name: "Schlafzimmer" },
     { id: "kinder1", typ: "kinderzimmer", name: "Kinderzimmer 1" },
     { id: "kinder2", typ: "kinderzimmer", name: "Kinderzimmer 2" },
@@ -22,7 +25,8 @@
     { id: "esszimmer", typ: "esszimmer", name: "Esszimmer" },
     { id: "kueche", typ: "kueche", name: "Küche" },
     { id: "gaestewc", typ: "gaestewc", name: "Gäste-WC" },
-    { id: "keller", typ: "keller", name: "Keller" },
+    { id: "keller", typ: "keller", name: "Keller 1" },
+    { id: "keller2", typ: "keller", name: "Keller 2" },
     { id: "frei2", typ: "frei", name: "Freier Raum 2" },
     { id: "garage", typ: "garage", name: "Garage" },
     { id: "balkon", typ: "balkon", name: "Balkon" },
@@ -33,6 +37,12 @@
   const an = (tage) => ({ art: "wochentage", wochentage: tage });
 
   const VORLAGEN = [
+    { titel: "Treppe putzen", moebel: "treppe", effekt: null, rhythmus: alle(14) },
+    { titel: "Wäsche waschen", moebel: "waschmaschine", effekt: "waesche", rhythmus: alle(3) },
+    { titel: "Lampe reinigen", moebel: "deckenlampe", effekt: null, rhythmus: alle(60) },
+    { titel: "Gardinen waschen", moebel: "gardine", effekt: null, rhythmus: alle(90) },
+    { titel: "Akten sortieren", moebel: "aktenstapel", effekt: null, rhythmus: alle(14) },
+    { titel: "Schreibtisch abwischen", moebel: "schreibtisch", effekt: "flecken", rhythmus: alle(7) },
     { titel: "Aufräumen", moebel: null, effekt: "aufraeumen", rhythmus: alle(1) },
     { titel: "Staub wischen", moebel: null, effekt: "staubwischen", rhythmus: alle(7) },
     { titel: "Staubsaugen", moebel: null, effekt: "staubsaugen", rhythmus: alle(7) },
@@ -63,10 +73,12 @@
     const aufgaben = [];
     // vorTagen: vor wie vielen Tagen zuletzt erledigt (null = noch nie)
     function A(raumId, titel, moebel, effekt, rhythmus, vorTagen) {
-      aufgaben.push({
+      const a = {
         id: "a" + (++n), raumId: raumId, titel: titel, moebel: moebel, effekt: effekt,
         rhythmus: rhythmus, zuletzt: vorTagen == null ? null : heute - vorTagen
-      });
+      };
+      aufgaben.push(a);
+      return a;
     }
 
     // Wohnzimmer: sauber, Katze auf dem Sofa, aber heute noch nicht aufgeräumt
@@ -76,7 +88,10 @@
     A("wohnzimmer", "Fernseher abstauben", "tv", null, alle(14), 5);
     A("wohnzimmer", "Aufräumen", null, "aufraeumen", alle(1), 1);
     A("wohnzimmer", "Kratzbaum absaugen", "kratzbaum", null, alle(14), 3);
-    A("wohnzimmer", "Fenster putzen", "fenster", null, alle(90), 40);
+    A("wohnzimmer", "Fenster putzen", "fenster", "fenster", alle(90), 40);
+    A("wohnzimmer", "Kamin ausfegen", "kamin", null, alle(60), 30);
+    A("wohnzimmer", "Gardinen waschen", "gardine", null, alle(90), 30);
+    A("wohnzimmer", "Lampe reinigen", "deckenlampe", null, alle(60), 20);
     A("wohnzimmer", "Teppich ausklopfen", "teppich", null, alle(60), 20);
 
     // Küche: alles erledigt → Fee + Wasserkessel
@@ -87,7 +102,7 @@
     A("kueche", "Futternäpfe spülen", "futternapf", null, alle(1), 0);
 
     // Esszimmer: genau die Hälfte → sauber, Kaffeetasse
-    A("esszimmer", "Esstisch abwischen", "esstisch", null, alle(1), 1);
+    A("esszimmer", "Esstisch abwischen", "esstisch", "glas", alle(1), 1);
     A("esszimmer", "Staubsaugen", null, "staubsaugen", alle(7), 9);
     A("esszimmer", "Staub wischen", null, "staubwischen", alle(14), 6);
     A("esszimmer", "Aquarium reinigen", "aquarium", null, alle(14), 12);
@@ -99,6 +114,7 @@
     A("bad", "Boden wischen", null, "wischen", alle(7), 12);
     A("bad", "Spiegel putzen", "spiegel", null, alle(7), 12);
     A("bad", "Staub wischen", null, "staubwischen", alle(14), 25);
+    A("bad", "Dusche putzen", "dusche", "handtuch", alle(7), 6);
 
     // Gäste-WC: blitzsauber
     A("gaestewc", "WC putzen", "wc", null, alle(7), 4);
@@ -122,15 +138,28 @@
     A("flur", "Garderobe ausmisten", "garderobe", null, alle(30), 12);
     A("flur", "Schuhregal abwischen", "schuhregal", null, alle(14), 3);
     A("flur", "Boden wischen", null, "wischen", alle(7), 8);
-    A("flur", "Katzenklo säubern", "katzenklo", null, alle(1), 0);
+    A("flur", "Katzenklo säubern", "katzenklo", "fliegen", alle(1), 0);
+    // Treppe: je Etage eine eigene Aufgabe
+    [["keller", 20], ["eg", 6], ["og", 16], ["dach", 2]].forEach(([etage, vor]) => {
+      A("flur", "Treppe putzen", "treppe", null, alle(14), vor).exemplar = etage;
+    });
 
-    // Dachboden, Keller, Garage, Balkon, Garten
-    A("dachboden", "Kartons sortieren", "kartons", null, alle(180), 150);
-    A("dachboden", "Staub wischen", null, "staubwischen", alle(90), 60);
-    A("dachboden", "Staubsaugen", null, "staubsaugen", alle(30), 45);
+    // Rumpelkammer, Keller, Garage, Balkon, Garten
+    A("rumpelkammer", "Kartons sortieren", "kartons", null, alle(180), 150);
+    A("rumpelkammer", "Staub wischen", null, "staubwischen", alle(90), 60);
+    A("rumpelkammer", "Staubsaugen", null, "staubsaugen", alle(30), 45);
+    A("rumpelkammer", "Gerümpel ausmisten", "geruempel", null, alle(90), 60);
+    // Büro
+    A("buero", "Akten sortieren", "aktenstapel", null, alle(14), 9);
+    A("buero", "Aktenschrank auswischen", "aktenschrank", null, alle(60), 40);
+    A("buero", "Bürostuhl absaugen", "buerostuhl", null, alle(30), 12);
+    A("buero", "Schreibtisch abwischen", "schreibtisch", "flecken", alle(7), 3);
+    A("buero", "Staubsaugen", null, "staubsaugen", alle(7), 8);
     A("keller", "Gefriertruhe abtauen", "gefriertruhe", null, alle(180), 200);
     A("keller", "Regal sortieren", "regal", null, alle(90), 30);
     A("keller", "Waschmaschine reinigen", "waschmaschine", null, alle(30), 40);
+    A("keller", "Wäsche waschen", "waschmaschine", "waesche", alle(3), 2);
+    A("keller", "Heizung warten", "heizung", null, alle(365), 200);
     A("keller", "Boden fegen", null, "staubsaugen", alle(30), 50);
     A("garage", "Auto waschen", "auto", null, alle(30), 20);
     A("garage", "Werkbank aufräumen", "werkbank", null, alle(60), 70);
