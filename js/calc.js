@@ -76,6 +76,53 @@
     };
   }
 
+  // ---- Pastell-Heatmap: sauber = niedliche Pastelltöne, verschmutzt = röter --
+  // Jedes Möbel (und jeder Raum) hat seinen festen Pastellton, abgeleitet aus dem
+  // Namen – er springt also nicht. Mit dem Anteil (0 frisch → 1 fällig) mischt er
+  // sich zu Rot; überfällig wird er noch etwas dunkler.
+  const PASTELL = ["#fde68a", "#bde0fe", "#f5e1c8", "#c5e8b7", "#f9c6d3", "#d9c8f0"];
+  const DRECK = [217, 87, 74];
+  const UMRISS = [91, 70, 54];
+
+  function hexRgb(h) {
+    return [1, 3, 5].map((i) => parseInt(h.substr(i, 2), 16));
+  }
+
+  function mischen(a, b, t) {
+    return a.map((v, i) => Math.round(v + (b[i] - v) * t));
+  }
+
+  function grundfarbe(name) {
+    return hexRgb(PASTELL[Math.floor(zufall(name)() * PASTELL.length)]);
+  }
+
+  // Feste Grundfarben: die Hecke ist sauber grün, bei Verschmutzung wird sie röter
+  const FESTE_FARBE = { hecke: "#8fd18a", gardine: "#c9b6e4" };
+
+  function pastellFarbe(name, anteil, helle, basis) {
+    if (anteil == null) return heatFarbe(null);
+    const t = Math.min(1, Math.max(0, anteil)) * 0.85;
+    let fill = mischen(basis ? hexRgb(basis) : grundfarbe(name), DRECK, t);
+    const ueber = anteil > 1 ? Math.min(0.3, (anteil - 1) * 0.3) : 0;
+    fill = mischen(fill, [40, 30, 30], ueber);
+    const rgb = (c) => "rgb(" + c.join(",") + ")";
+    return {
+      fill: rgb(fill),
+      dunkel: rgb(mischen(fill, UMRISS, 0.5)),
+      wand: rgb(mischen(fill, [255, 255, 255], helle || 0.5))
+    };
+  }
+
+  // Möbel: Farbe nach Möbeltyp und Dringlichkeit
+  function moebelFarbe(typ, anteil) {
+    return pastellFarbe("moebel:" + typ, anteil, 0.5, FESTE_FARBE[typ]);
+  }
+
+  // Raum (Wand): Farbe nach Raum und Durchschnitt aller Aufgaben
+  function raumFarbe(raumId, heat) {
+    return pastellFarbe("raum:" + raumId, heat, 0.6);
+  }
+
   const SPRUECHE = {
     blitzsauber: ["Blitzsauber!", "Hier wohnt die PutzFee!", "Glänzt wie neu!"],
     sehrgut: ["Sieht richtig schick aus hier", "Fast perfekt!"],
@@ -176,6 +223,8 @@
     naechsterTermin: naechsterTermin,
     aufgabenStand: aufgabenStand,
     heatFarbe: heatFarbe,
+    moebelFarbe: moebelFarbe,
+    raumFarbe: raumFarbe,
     raumStand: raumStand,
     istSauber: istSauber,
     rhythmusText: rhythmusText,

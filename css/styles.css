@@ -158,3 +158,8 @@ button:active { transform: translateY(1px); }
 .menue-info:empty { display: none; }
 .menue-info b { display: block; font-size: 13px; color: var(--tinte); margin-bottom: 2px; }
 #installieren { margin-top: 4px; border-top: 1px dashed #ead9c2; padding-top: 8px; }
+
+/* Umgestalten (Möbel verschieben) und Bearbeiten einer Aufgabe */
+.umgestalten-zeile { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+.umgestalten-zeile small { color: #7a6a5a; }
+.aufgaben li.bearbeitet { outline: 2px dashed #ffb703; outline-offset: 2px; }
